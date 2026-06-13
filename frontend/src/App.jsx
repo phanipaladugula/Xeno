@@ -6,6 +6,22 @@ import TaskManager from './components/TaskManager';
 import './index.css';
 import './App.css';
 
+// Xeno logo SVG component
+function XenoLogo({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="url(#grad1)" />
+      <path d="M8 12l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style={{stopColor:'#667eea',stopOpacity:1}} />
+          <stop offset="100%" style={{stopColor:'#764ba2',stopOpacity:1}} />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
 function App() {
   const [user, setUser] = useState(null);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -50,7 +66,8 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="logo">
-          <span className="logo-text">Xeno</span>
+          <XenoLogo size={32} />
+          <span className="logo-text">Xeno Agent</span>
         </div>
         <div className="user-info">
           <span className="username">{user.username}</span>
@@ -97,6 +114,18 @@ function App() {
           </div>
         )}
       </main>
+
+      <footer className="app-footer">
+        <div className="footer-logo">Xeno Agent</div>
+        <div className="footer-links">
+          <a href="https://xeno.ai" target="_blank" rel="noopener noreferrer">About</a>
+          <a href="https://xeno.ai" target="_blank" rel="noopener noreferrer">Help</a>
+          <a href="https://xeno.ai" target="_blank" rel="noopener noreferrer">Privacy</a>
+        </div>
+        <div className="footer-copyright">
+          © 2024 Xeno. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 }

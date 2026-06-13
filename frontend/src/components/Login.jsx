@@ -2,6 +2,22 @@ import React, { useState } from 'react';
 import api from '../services/api';
 import './Login.css';
 
+// Xeno logo SVG component
+function XenoLogo({ size = 40 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="url(#grad1)" />
+      <path d="M8 12l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style={{stopColor:'#667eea',stopOpacity:1}} />
+          <stop offset="100%" style={{stopColor:'#764ba2',stopOpacity:1}} />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
 function Login({ onLogin }) {
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState('');
@@ -40,9 +56,7 @@ function Login({ onLogin }) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <div className="logo">
-            <span className="logo-text">Xeno</span>
-          </div>
+          <XenoLogo size={48} />
           <h2>{isRegister ? 'Create Account' : 'Welcome Back'}</h2>
           <p className="subtitle">
             {isRegister ? 'Join Xeno Agent today' : 'Sign in to your account'}
