@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
+import voiceService from '../services/voice';
+import VoiceAssistant from './VoiceAssistant';
 import './ChatInterface.css';
 
 function ChatInterface({ chat, onChatTitleUpdate }) {
@@ -7,6 +9,7 @@ function ChatInterface({ chat, onChatTitleUpdate }) {
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(true);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -18,6 +21,14 @@ function ChatInterface({ chat, onChatTitleUpdate }) {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    // Load voice settings
+    const savedAutoSpeak = localStorage.getItem('voiceAutoSpeak');
+    if (savedAutoSpeak !== null) {
+      setAutoSpeak(savedAutoSpeak === 'true');
+    }
+  }, []);
 
   const loadMessages = async (chatId) => {
     setLoading(true);
@@ -58,6 +69,11 @@ function ChatInterface({ chat, onChatTitleUpdate }) {
       try {
         const aiMessage = await api.processAgentMessage(chat.id, content);
         setMessages(prev => [...prev, aiMessage]);
+
+        // Speak AI response if auto-speak is enabled
+        if (autoSpeak && voiceService.isSynthesisAvailable()) {
+          voiceService.speak(aiMessage.content);
+        }
       } catch (err) {
         console.error('Failed to get AI response:', err);
         const errorMessage = await api.sendMessage(
@@ -129,16 +145,21 @@ function ChatInterface({ chat, onChatTitleUpdate }) {
       </div>
 
       <form className="chat-input" onSubmit={handleSendMessage}>
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Type your message..."
-          disabled={sending}
-        />
-        <button type="submit" disabled={sending || !inputValue.trim()}>
-          {sending ? '...' : 'Send'}
-        </button>
+        <div className="input-row">
+          <VoiceAssistant onMessageSend={(text) => {
+            setInputValue(text);
+          }} />
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Type your message..."
+            disabled={sending}
+          />
+          <button type="submit" disabled={sending || !inputValue.trim()}>
+            {sending ? '...' : 'Send'}
+          </button>
+        </div>
       </form>
     </div>
   );

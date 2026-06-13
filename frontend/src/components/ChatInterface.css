@@ -127,8 +127,12 @@
   padding: 16px 24px;
   background: white;
   border-top: 1px solid #e5e7eb;
+}
+
+.input-row {
   display: flex;
   gap: 12px;
+  align-items: center;
 }
 
 .chat-input input {
