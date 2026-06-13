@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
+import ChatList from './components/ChatList';
+import ChatInterface from './components/ChatInterface';
 import './index.css';
+import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [selectedChat, setSelectedChat] = useState(null);
 
   useEffect(() => {
     // Check if user is logged in
@@ -27,6 +31,13 @@ function App() {
   const handleLogout = () => {
     localStorage.clear();
     setUser(null);
+    setSelectedChat(null);
+  };
+
+  const handleChatTitleUpdate = (chatId, newTitle) => {
+    if (selectedChat && selectedChat.id === chatId) {
+      setSelectedChat({ ...selectedChat, title: newTitle });
+    }
   };
 
   if (!user) {
@@ -46,10 +57,17 @@ function App() {
           </button>
         </div>
       </header>
+
       <main className="app-main">
-        <div className="welcome-section">
-          <h1>Welcome, {user.username}!</h1>
-          <p>This is your Xeno Agent dashboard.</p>
+        <div className="chat-container">
+          <ChatList
+            selectedChat={selectedChat}
+            onChatSelect={setSelectedChat}
+          />
+          <ChatInterface
+            chat={selectedChat}
+            onChatTitleUpdate={handleChatTitleUpdate}
+          />
         </div>
       </main>
     </div>

@@ -5,10 +5,12 @@ class ApiService {
   // Helper to make API calls
   async request(url, options = {}) {
     const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
 
     const headers = {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...(userId && { 'X-User-Id': userId }),
       ...options.headers
     };
 
@@ -56,10 +58,16 @@ class ApiService {
     return this.request(`/chats/${chatId}/messages`);
   }
 
-  async sendMessage(chatId, content) {
+  async sendMessage(chatId, content, sender, isAiResponse) {
     return this.request(`/chats/${chatId}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ content })
+      body: JSON.stringify({ content, sender, isAiResponse })
+    });
+  }
+
+  async deleteChat(chatId) {
+    return this.request(`/chats/${chatId}`, {
+      method: 'DELETE'
     });
   }
 
