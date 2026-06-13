@@ -5,6 +5,9 @@ import './ChatList.css';
 function ChatList({ selectedChat, onChatSelect }) {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [chatType, setChatType] = useState('single');
+  const [chatTitle, setChatTitle] = useState('');
 
   useEffect(() => {
     loadChats();
@@ -21,13 +24,24 @@ function ChatList({ selectedChat, onChatSelect }) {
     }
   };
 
-  const handleNewChat = async () => {
+  const handleNewChat = async (e) => {
+    e.preventDefault();
     try {
-      const newChat = await api.createChat('New Chat');
+      const title = chatTitle.trim() || (chatType === 'group' ? 'New Group' : 'New Chat');
+      let newChat;
+      if (chatType === 'group') {
+        newChat = await api.createGroupChat(title);
+      } else {
+        newChat = await api.createChat(title);
+      }
       setChats([newChat, ...chats]);
       onChatSelect(newChat);
+      setShowNewChatModal(false);
+      setChatTitle('');
+      setChatType('single');
     } catch (err) {
       console.error('Failed to create chat:', err);
+      alert('Failed to create chat: ' + err.message);
     }
   };
 
@@ -54,10 +68,52 @@ function ChatList({ selectedChat, onChatSelect }) {
     <div className="chat-list">
       <div className="chat-list-header">
         <h3>Chats</h3>
-        <button className="new-chat-button" onClick={handleNewChat}>
+        <button className="new-chat-button" onClick={() => setShowNewChatModal(true)}>
           + New Chat
         </button>
       </div>
+
+      {showNewChatModal && (
+        <div className="modal-overlay" onClick={() => setShowNewChatModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Create New Chat</h3>
+              <button className="close-modal" onClick={() => setShowNewChatModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleNewChat} className="modal-body">
+              <div className="form-group">
+                <label>Chat Type</label>
+                <div className="chat-type-selector">
+                  <button
+                    type="button"
+                    className={`type-option ${chatType === 'single' ? 'active' : ''}`}
+                    onClick={() => setChatType('single')}
+                  >
+                    💬 Single
+                  </button>
+                  <button
+                    type="button"
+                    className={`type-option ${chatType === 'group' ? 'active' : ''}`}
+                    onClick={() => setChatType('group')}
+                  >
+                    👥 Group
+                  </button>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Title</label>
+                <input
+                  type="text"
+                  value={chatTitle}
+                  onChange={(e) => setChatTitle(e.target.value)}
+                  placeholder={chatType === 'group' ? 'Group name...' : 'Chat name...'}
+                />
+              </div>
+              <button type="submit" className="submit-button">Create Chat</button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="chat-list-content">
         {chats.length === 0 ? (

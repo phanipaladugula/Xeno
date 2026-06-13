@@ -54,6 +54,30 @@ class ApiService {
     });
   }
 
+  async createGroupChat(title) {
+    return this.request('/chats/group', {
+      method: 'POST',
+      body: JSON.stringify({ title })
+    });
+  }
+
+  async addParticipant(chatId, userId) {
+    return this.request(`/chats/${chatId}/participants`, {
+      method: 'POST',
+      body: JSON.stringify({ userId })
+    });
+  }
+
+  async removeParticipant(chatId, userId) {
+    return this.request(`/chats/${chatId}/participants/${userId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async getParticipants(chatId) {
+    return this.request(`/chats/${chatId}/participants`);
+  }
+
   async getMessages(chatId) {
     return this.request(`/chats/${chatId}/messages`);
   }

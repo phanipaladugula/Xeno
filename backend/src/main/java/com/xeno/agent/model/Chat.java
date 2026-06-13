@@ -38,6 +38,9 @@ public class Chat {
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages = new ArrayList<>();
 
+    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatParticipant> participants = new ArrayList<>();
+
     // Default constructor
     public Chat() {
         this.createdAt = LocalDateTime.now();
@@ -115,5 +118,13 @@ public class Chat {
 
     public void setMessages(List<Message> messages) {
         this.messages = messages;
+    }
+
+    public List<ChatParticipant> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(List<ChatParticipant> participants) {
+        this.participants = participants;
     }
 }

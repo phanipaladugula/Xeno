@@ -1,6 +1,7 @@
 package com.xeno.agent.controller;
 
 import com.xeno.agent.model.Chat;
+import com.xeno.agent.model.ChatParticipant;
 import com.xeno.agent.model.Message;
 import com.xeno.agent.service.ChatService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -116,6 +117,78 @@ public class ChatController {
             Long userId = getUserId(request);
             chatService.deleteChat(id, userId);
             return ResponseEntity.ok(Map.of("message", "Chat deleted successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Create a new group chat
+     */
+    @PostMapping("/group")
+    public ResponseEntity<?> createGroupChat(@RequestBody Map<String, String> body, HttpServletRequest request) {
+        try {
+            Long userId = getUserId(request);
+            String title = body.get("title");
+            if (title == null || title.trim().isEmpty()) {
+                title = "New Group";
+            }
+            Chat chat = chatService.createGroupChat(userId, title);
+            return ResponseEntity.status(HttpStatus.CREATED).body(chat);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Add a participant to a group chat
+     */
+    @PostMapping("/{id}/participants")
+    public ResponseEntity<?> addParticipant(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request) {
+        try {
+            Long requestorId = getUserId(request);
+            String userIdToAddStr = body.get("userId");
+            if (userIdToAddStr == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "userId is required"));
+            }
+            Long userIdToAdd = Long.parseLong(userIdToAddStr);
+
+            ChatParticipant participant = chatService.addParticipant(id, requestorId, userIdToAdd);
+            return ResponseEntity.ok(participant);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Remove a participant from a group chat
+     */
+    @DeleteMapping("/{id}/participants/{userId}")
+    public ResponseEntity<?> removeParticipant(
+            @PathVariable Long id,
+            @PathVariable Long userId,
+            HttpServletRequest request) {
+        try {
+            Long requestorId = getUserId(request);
+            chatService.removeParticipant(id, requestorId, userId);
+            return ResponseEntity.ok(Map.of("message", "Participant removed successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Get all participants in a chat
+     */
+    @GetMapping("/{id}/participants")
+    public ResponseEntity<?> getParticipants(@PathVariable Long id, HttpServletRequest request) {
+        try {
+            Long userId = getUserId(request);
+            List<ChatParticipant> participants = chatService.getParticipants(id, userId);
+            return ResponseEntity.ok(participants);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
