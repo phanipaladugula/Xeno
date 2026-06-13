@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import ChatList from './components/ChatList';
 import ChatInterface from './components/ChatInterface';
+import TaskManager from './components/TaskManager';
 import './index.css';
 import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
   const [selectedChat, setSelectedChat] = useState(null);
+  const [activeTab, setActiveTab] = useState('chat');
 
   useEffect(() => {
     // Check if user is logged in
@@ -59,16 +61,41 @@ function App() {
       </header>
 
       <main className="app-main">
-        <div className="chat-container">
-          <ChatList
-            selectedChat={selectedChat}
-            onChatSelect={setSelectedChat}
-          />
-          <ChatInterface
-            chat={selectedChat}
-            onChatTitleUpdate={handleChatTitleUpdate}
-          />
+        <div className="tab-nav">
+          <button
+            className={`tab-button ${activeTab === 'chat' ? 'active' : ''}`}
+            onClick={() => setActiveTab('chat')}
+          >
+            💬 Chat
+          </button>
+          <button
+            className={`tab-button ${activeTab === 'tasks' ? 'active' : ''}`}
+            onClick={() => setActiveTab('tasks')}
+          >
+            ✅ Tasks
+          </button>
         </div>
+
+        {activeTab === 'chat' && (
+          <div className="tab-content">
+            <div className="chat-container">
+              <ChatList
+                selectedChat={selectedChat}
+                onChatSelect={setSelectedChat}
+              />
+              <ChatInterface
+                chat={selectedChat}
+                onChatTitleUpdate={handleChatTitleUpdate}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'tasks' && (
+          <div className="tab-content">
+            <TaskManager />
+          </div>
+        )}
       </main>
     </div>
   );

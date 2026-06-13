@@ -137,6 +137,42 @@ class ApiService {
   async getAgentStatus() {
     return this.request('/agent/status');
   }
+
+  // Task endpoints (updated with query params)
+  async getTasks(filter = {}) {
+    let url = '/tasks';
+    const params = new URLSearchParams();
+    if (filter.status) params.append('status', filter.status);
+    if (filter.priority) params.append('priority', filter.priority);
+    if (params.toString()) url += '?' + params.toString();
+    return this.request(url);
+  }
+
+  async createTask(task) {
+    return this.request('/tasks', {
+      method: 'POST',
+      body: JSON.stringify(task)
+    });
+  }
+
+  async updateTask(taskId, task) {
+    return this.request(`/tasks/${taskId}`, {
+      method: 'PUT',
+      body: JSON.stringify(task)
+    });
+  }
+
+  async deleteTask(taskId) {
+    return this.request(`/tasks/${taskId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  async markTaskComplete(taskId) {
+    return this.request(`/tasks/${taskId}/complete`, {
+      method: 'PUT'
+    });
+  }
 }
 
 export default new ApiService();

@@ -70,9 +70,39 @@ body {
   width: 100%;
 }
 
+.tab-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab-button {
+  padding: 10px 24px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  background: #f3f4f6;
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+}
+
+.tab-content {
+  width: 100%;
+}
+
 .chat-container {
   display: flex;
-  height: calc(100vh - 96px);
+  height: calc(100vh - 160px);
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
