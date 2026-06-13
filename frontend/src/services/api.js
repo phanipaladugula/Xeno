@@ -125,6 +125,18 @@ class ApiService {
       method: 'PUT'
     });
   }
+
+  // Agent endpoints
+  async processAgentMessage(chatId, content) {
+    return this.request('/agent/chat', {
+      method: 'POST',
+      body: JSON.stringify({ chatId, content })
+    });
+  }
+
+  async getAgentStatus() {
+    return this.request('/agent/status');
+  }
 }
 
 export default new ApiService();

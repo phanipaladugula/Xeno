@@ -54,10 +54,20 @@ function ChatInterface({ chat, onChatTitleUpdate }) {
         onChatTitleUpdate(chat.id, newTitle);
       }
 
-      // TODO: Add AI response (will be implemented in Phase 5)
-      // For now, just show a placeholder
-      const aiMessage = await api.sendMessage(chat.id, "I'll help you with that! (AI response coming soon)", 'ai', true);
-      setMessages(prev => [...prev, aiMessage]);
+      // Get AI response
+      try {
+        const aiMessage = await api.processAgentMessage(chat.id, content);
+        setMessages(prev => [...prev, aiMessage]);
+      } catch (err) {
+        console.error('Failed to get AI response:', err);
+        const errorMessage = await api.sendMessage(
+          chat.id,
+          "Sorry, I couldn't connect to the AI service. Please check your API key configuration.",
+          'ai',
+          true
+        );
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } catch (err) {
       console.error('Failed to send message:', err);
     } finally {
