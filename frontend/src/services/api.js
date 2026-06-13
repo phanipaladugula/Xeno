@@ -152,40 +152,24 @@ class ApiService {
     });
   }
 
-  // Task endpoints (updated with query params)
-  async getTasks(filter = {}) {
-    let url = '/tasks';
-    const params = new URLSearchParams();
-    if (filter.status) params.append('status', filter.status);
-    if (filter.priority) params.append('priority', filter.priority);
-    if (params.toString()) url += '?' + params.toString();
-    return this.request(url);
+  // Memory endpoints
+  async getPreferences() {
+    return this.request('/memory/preferences');
   }
 
-  async createTask(task) {
-    return this.request('/tasks', {
-      method: 'POST',
-      body: JSON.stringify(task)
-    });
-  }
-
-  async updateTask(taskId, task) {
-    return this.request(`/tasks/${taskId}`, {
+  async updatePreferences(preferences) {
+    return this.request('/memory/preferences', {
       method: 'PUT',
-      body: JSON.stringify(task)
+      body: JSON.stringify(preferences)
     });
   }
 
-  async deleteTask(taskId) {
-    return this.request(`/tasks/${taskId}`, {
-      method: 'DELETE'
-    });
+  async getContext() {
+    return this.request('/memory/context');
   }
 
-  async markTaskComplete(taskId) {
-    return this.request(`/tasks/${taskId}/complete`, {
-      method: 'PUT'
-    });
+  async getStats() {
+    return this.request('/memory/stats');
   }
 }
 
