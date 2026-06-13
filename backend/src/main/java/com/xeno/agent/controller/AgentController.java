@@ -2,6 +2,7 @@ package com.xeno.agent.controller;
 
 import com.xeno.agent.model.Message;
 import com.xeno.agent.service.AgentService;
+import com.xeno.agent.service.ApifyService;
 import com.xeno.agent.service.ChatService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -21,10 +22,15 @@ public class AgentController {
 
     private final AgentService agentService;
     private final ChatService chatService;
+    private final ApifyService apifyService;
 
-    public AgentController(AgentService agentService, ChatService chatService) {
+    public AgentController(
+            AgentService agentService,
+            ChatService chatService,
+            ApifyService apifyService) {
         this.agentService = agentService;
         this.chatService = chatService;
+        this.apifyService = apifyService;
     }
 
     /**
@@ -76,10 +82,50 @@ public class AgentController {
      */
     @GetMapping("/status")
     public ResponseEntity<?> getStatus() {
-        boolean configured = agentService.isConfigured();
+        boolean llmConfigured = agentService.isConfigured();
+        boolean apifyConfigured = apifyService.isConfigured();
+
         return ResponseEntity.ok(Map.of(
-                "configured", configured,
-                "message", configured ? "Agent is ready" : "Please configure API keys"
+                "configured", llmConfigured && apifyConfigured,
+                "llmConfigured", llmConfigured,
+                "apifyConfigured", apifyConfigured,
+                "message", llmConfigured && apifyConfigured ? "Agent is fully ready" : "Please configure API keys"
         ));
+    }
+
+    /**
+     * Perform web search
+     */
+    @PostMapping("/search")
+    public ResponseEntity<?> webSearch(@RequestBody Map<String, String> body) {
+        try {
+            String query = body.get("query");
+            if (query == null || query.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "query is required"));
+            }
+
+            Map<String, Object> results = apifyService.searchWeb(query);
+            return ResponseEntity.ok(results);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Extract content from URL
+     */
+    @PostMapping("/extract")
+    public ResponseEntity<?> extractContent(@RequestBody Map<String, String> body) {
+        try {
+            String url = body.get("url");
+            if (url == null || url.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "url is required"));
+            }
+
+            Map<String, Object> content = apifyService.extractContent(url);
+            return ResponseEntity.ok(content);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
     }
 }

@@ -138,6 +138,20 @@ class ApiService {
     return this.request('/agent/status');
   }
 
+  async webSearch(query) {
+    return this.request('/agent/search', {
+      method: 'POST',
+      body: JSON.stringify({ query })
+    });
+  }
+
+  async extractContent(url) {
+    return this.request('/agent/extract', {
+      method: 'POST',
+      body: JSON.stringify({ url })
+    });
+  }
+
   // Task endpoints (updated with query params)
   async getTasks(filter = {}) {
     let url = '/tasks';
