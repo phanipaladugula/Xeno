@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/agent")
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://localhost:4173", "http://localhost:5178"})
+@CrossOrigin(origins = {"https://xeno-sigma-three.vercel.app", "http://localhost:5173", "http://localhost:3000", "http://localhost:4173", "http://localhost:5178"})
 public class AgentController {
 
     private final AIAgentService agentService;

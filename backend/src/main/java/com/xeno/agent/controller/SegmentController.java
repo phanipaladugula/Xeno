@@ -10,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/segments")
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://localhost:4173"})
+@CrossOrigin(origins = {"https://xeno-sigma-three.vercel.app", "http://localhost:5173", "http://localhost:3000", "http://localhost:4173"})
 public class SegmentController {
 
     private final SegmentService segmentService;

@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/customers")
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://localhost:4173"})
+@CrossOrigin(origins = {"https://xeno-sigma-three.vercel.app", "http://localhost:5173", "http://localhost:3000", "http://localhost:4173"})
 public class CustomerController {
 
     private final CustomerService customerService;
