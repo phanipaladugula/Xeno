@@ -1,5 +1,7 @@
 // Xeno CRM API Service
-const API_BASE_URL = 'http://localhost:8080/api';
+// For local development, it defaults to /api (which Vite proxies to localhost:8080)
+// For production, you can inject VITE_API_URL during the build process
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 class ApiService {
   async request(url, options = {}) {
