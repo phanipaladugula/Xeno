@@ -1,6 +1,7 @@
 package com.xeno.agent.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 /**
  * ChatParticipant model for group chat participants

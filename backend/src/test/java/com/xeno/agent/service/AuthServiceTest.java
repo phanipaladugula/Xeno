@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 
@@ -29,9 +30,13 @@ public class AuthServiceTest {
 
     private User testUser;
 
+    private BCryptPasswordEncoder passwordEncoder;
+
     @BeforeEach
     void setUp() {
-        testUser = new User("testuser", "password123", "test@example.com");
+        passwordEncoder = new BCryptPasswordEncoder();
+        // Create user with BCrypt encoded password
+        testUser = new User("testuser", passwordEncoder.encode("password123"), "test@example.com");
         testUser.setId(1L);
     }
 

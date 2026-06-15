@@ -1,175 +1,144 @@
-// API service for backend communication
+// Xeno CRM API Service
 const API_BASE_URL = 'http://localhost:8080/api';
 
 class ApiService {
-  // Helper to make API calls
   async request(url, options = {}) {
-    const token = localStorage.getItem('token');
-    const userId = localStorage.getItem('userId');
-
     const headers = {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
-      ...(userId && { 'X-User-Id': userId }),
-      ...options.headers
+      ...options.headers,
     };
 
-    const response = await fetch(`${API_BASE_URL}${url}`, {
-      ...options,
-      headers
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}${url}`, {
+        ...options,
+        headers,
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Request failed');
+      if (!response.ok) {
+        let errorMsg = `HTTP ${response.status}`;
+        try {
+          const err = await response.json();
+          errorMsg = err.error || err.message || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
+      }
+
+      return response.json();
+    } catch (err) {
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        throw new Error('Cannot connect to backend. Is the server running?');
+      }
+      throw err;
     }
-
-    return response.json();
   }
 
-  // Auth endpoints
-  async register(username, password, email) {
-    return this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ username, password, email })
-    });
+  // --- Customers ---
+  getCustomers(page = 0, size = 20, search = '') {
+    const params = new URLSearchParams({ page, size });
+    if (search) params.append('search', search);
+    return this.request(`/customers?${params}`);
   }
 
-  async login(username, password) {
-    return this.request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password })
-    });
+  getCustomer(id) {
+    return this.request(`/customers/${id}`);
   }
 
-  // Chat endpoints
-  async getChats() {
-    return this.request('/chats');
+  createCustomer(data) {
+    return this.request('/customers', { method: 'POST', body: JSON.stringify(data) });
   }
 
-  async createChat(title) {
-    return this.request('/chats', {
-      method: 'POST',
-      body: JSON.stringify({ title })
-    });
+  updateCustomer(id, data) {
+    return this.request(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   }
 
-  async createGroupChat(title) {
-    return this.request('/chats/group', {
-      method: 'POST',
-      body: JSON.stringify({ title })
-    });
+  deleteCustomer(id) {
+    return this.request(`/customers/${id}`, { method: 'DELETE' });
   }
 
-  async addParticipant(chatId, userId) {
-    return this.request(`/chats/${chatId}/participants`, {
-      method: 'POST',
-      body: JSON.stringify({ userId })
-    });
+  getCustomerStats() {
+    return this.request('/customers/stats');
   }
 
-  async removeParticipant(chatId, userId) {
-    return this.request(`/chats/${chatId}/participants/${userId}`, {
-      method: 'DELETE'
-    });
+  // --- Segments ---
+  getSegments() {
+    return this.request('/segments');
   }
 
-  async getParticipants(chatId) {
-    return this.request(`/chats/${chatId}/participants`);
+  getSegment(id) {
+    return this.request(`/segments/${id}`);
   }
 
-  async getMessages(chatId) {
-    return this.request(`/chats/${chatId}/messages`);
+  createSegment(data) {
+    return this.request('/segments', { method: 'POST', body: JSON.stringify(data) });
   }
 
-  async sendMessage(chatId, content, sender, isAiResponse) {
-    return this.request(`/chats/${chatId}/messages`, {
-      method: 'POST',
-      body: JSON.stringify({ content, sender, isAiResponse })
-    });
+  updateSegment(id, data) {
+    return this.request(`/segments/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   }
 
-  async deleteChat(chatId) {
-    return this.request(`/chats/${chatId}`, {
-      method: 'DELETE'
-    });
+  deleteSegment(id) {
+    return this.request(`/segments/${id}`, { method: 'DELETE' });
   }
 
-  // Task endpoints
-  async getTasks() {
-    return this.request('/tasks');
+  previewSegment(rules) {
+    return this.request('/segments/preview', { method: 'POST', body: JSON.stringify({ rules }) });
   }
 
-  async createTask(task) {
-    return this.request('/tasks', {
-      method: 'POST',
-      body: JSON.stringify(task)
-    });
+  getSegmentCustomers(id) {
+    return this.request(`/segments/${id}/customers`);
   }
 
-  async updateTask(taskId, task) {
-    return this.request(`/tasks/${taskId}`, {
-      method: 'PUT',
-      body: JSON.stringify(task)
-    });
+  // --- Campaigns ---
+  getCampaigns() {
+    return this.request('/campaigns');
   }
 
-  async deleteTask(taskId) {
-    return this.request(`/tasks/${taskId}`, {
-      method: 'DELETE'
-    });
+  getCampaign(id) {
+    return this.request(`/campaigns/${id}`);
   }
 
-  async markTaskComplete(taskId) {
-    return this.request(`/tasks/${taskId}/complete`, {
-      method: 'PUT'
-    });
+  createCampaign(data) {
+    return this.request('/campaigns', { method: 'POST', body: JSON.stringify(data) });
   }
 
-  // Agent endpoints
-  async processAgentMessage(chatId, content) {
+  updateCampaign(id, data) {
+    return this.request(`/campaigns/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+
+  deleteCampaign(id) {
+    return this.request(`/campaigns/${id}`, { method: 'DELETE' });
+  }
+
+  launchCampaign(id) {
+    return this.request(`/campaigns/${id}/launch`, { method: 'POST' });
+  }
+
+  getCampaignStats(id) {
+    return this.request(`/campaigns/${id}/stats`);
+  }
+
+  getCampaignRecipients(id) {
+    return this.request(`/campaigns/${id}/recipients`);
+  }
+
+  getGlobalCampaignStats() {
+    return this.request('/campaigns/stats/global');
+  }
+
+  // --- AI Agent ---
+  chat(content, history = []) {
     return this.request('/agent/chat', {
       method: 'POST',
-      body: JSON.stringify({ chatId, content })
+      body: JSON.stringify({ content, history }),
     });
   }
 
-  async getAgentStatus() {
+  getDashboard() {
+    return this.request('/agent/dashboard');
+  }
+
+  getAgentStatus() {
     return this.request('/agent/status');
-  }
-
-  async webSearch(query) {
-    return this.request('/agent/search', {
-      method: 'POST',
-      body: JSON.stringify({ query })
-    });
-  }
-
-  async extractContent(url) {
-    return this.request('/agent/extract', {
-      method: 'POST',
-      body: JSON.stringify({ url })
-    });
-  }
-
-  // Memory endpoints
-  async getPreferences() {
-    return this.request('/memory/preferences');
-  }
-
-  async updatePreferences(preferences) {
-    return this.request('/memory/preferences', {
-      method: 'PUT',
-      body: JSON.stringify(preferences)
-    });
-  }
-
-  async getContext() {
-    return this.request('/memory/context');
-  }
-
-  async getStats() {
-    return this.request('/memory/stats');
   }
 }
 

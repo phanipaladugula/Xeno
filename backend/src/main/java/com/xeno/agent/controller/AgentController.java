@@ -1,131 +1,92 @@
 package com.xeno.agent.controller;
 
-import com.xeno.agent.model.Message;
-import com.xeno.agent.service.AgentService;
-import com.xeno.agent.service.ApifyService;
-import com.xeno.agent.service.ChatService;
-import jakarta.servlet.http.HttpServletRequest;
+import com.xeno.agent.service.AIAgentService;
+import com.xeno.agent.service.CampaignService;
+import com.xeno.agent.service.CustomerService;
+import com.xeno.agent.service.LLMService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Controller for AI agent operations
+ * Controller for AI agent chat and CRM operations
  */
 @RestController
 @RequestMapping("/api/agent")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://localhost:4173", "http://localhost:5178"})
 public class AgentController {
 
-    private final AgentService agentService;
-    private final ChatService chatService;
-    private final ApifyService apifyService;
+    private final AIAgentService agentService;
+    private final CustomerService customerService;
+    private final CampaignService campaignService;
+    private final LLMService llmService;
 
-    public AgentController(
-            AgentService agentService,
-            ChatService chatService,
-            ApifyService apifyService) {
+    public AgentController(AIAgentService agentService,
+                           CustomerService customerService,
+                           CampaignService campaignService,
+                           LLMService llmService) {
         this.agentService = agentService;
-        this.chatService = chatService;
-        this.apifyService = apifyService;
+        this.customerService = customerService;
+        this.campaignService = campaignService;
+        this.llmService = llmService;
     }
 
     /**
-     * Get user ID from request
-     */
-    private Long getUserId(HttpServletRequest request) {
-        String userIdHeader = request.getHeader("X-User-Id");
-        if (userIdHeader == null) {
-            throw new RuntimeException("User not authenticated");
-        }
-        return Long.parseLong(userIdHeader);
-    }
-
-    /**
-     * Process a message with the AI agent
+     * Process a conversational message with AI
      */
     @PostMapping("/chat")
-    public ResponseEntity<?> processMessage(
-            @RequestBody Map<String, String> body,
-            HttpServletRequest request) {
+    public ResponseEntity<?> chat(@RequestBody Map<String, Object> body) {
         try {
-            Long userId = getUserId(request);
-            String chatIdStr = body.get("chatId");
-            String content = body.get("content");
+            String content = (String) body.get("content");
+            List<Map<String, String>> history = (List<Map<String, String>>) body.getOrDefault("history", new ArrayList<>());
 
-            if (chatIdStr == null || content == null || content.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "chatId and content are required"));
+            if (content == null || content.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "content is required"));
             }
 
-            Long chatId = Long.parseLong(chatIdStr);
+            String response = agentService.processAgentRequest(content, history);
+            return ResponseEntity.ok(Map.of("response", response, "role", "assistant"));
 
-            // Get chat history
-            List<Message> history = chatService.getMessagesByChat(chatId, userId);
-
-            // Get AI response
-            String aiResponse = agentService.processMessage(content, history);
-
-            // Save AI response to chat
-            Message aiMessage = chatService.addMessage(chatId, userId, aiResponse, "ai", true);
-
-            return ResponseEntity.ok(aiMessage);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 
     /**
-     * Check if agent is configured
+     * Get dashboard stats (combined customer + campaign data)
+     */
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> getDashboard() {
+        try {
+            Map<String, Object> customerStats = customerService.getDashboardStats();
+            Map<String, Object> campaignStats = campaignService.getGlobalStats();
+
+            Map<String, Object> combined = new HashMap<>();
+            combined.putAll(customerStats);
+            combined.putAll(campaignStats);
+
+            return ResponseEntity.ok(combined);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Status check
      */
     @GetMapping("/status")
     public ResponseEntity<?> getStatus() {
-        boolean llmConfigured = agentService.isConfigured();
-        boolean apifyConfigured = apifyService.isConfigured();
-
+        boolean configured = agentService.isConfigured();
         return ResponseEntity.ok(Map.of(
-                "configured", llmConfigured && apifyConfigured,
-                "llmConfigured", llmConfigured,
-                "apifyConfigured", apifyConfigured,
-                "message", llmConfigured && apifyConfigured ? "Agent is fully ready" : "Please configure API keys"
+                "configured", configured,
+                "message", configured ? "Xeno AI is ready" : "Please configure OPENROUTER_API_KEY"
         ));
-    }
-
-    /**
-     * Perform web search
-     */
-    @PostMapping("/search")
-    public ResponseEntity<?> webSearch(@RequestBody Map<String, String> body) {
-        try {
-            String query = body.get("query");
-            if (query == null || query.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "query is required"));
-            }
-
-            Map<String, Object> results = apifyService.searchWeb(query);
-            return ResponseEntity.ok(results);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    /**
-     * Extract content from URL
-     */
-    @PostMapping("/extract")
-    public ResponseEntity<?> extractContent(@RequestBody Map<String, String> body) {
-        try {
-            String url = body.get("url");
-            if (url == null || url.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "url is required"));
-            }
-
-            Map<String, Object> content = apifyService.extractContent(url);
-            return ResponseEntity.ok(content);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
-        }
     }
 }
