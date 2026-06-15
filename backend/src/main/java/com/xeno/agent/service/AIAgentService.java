@@ -21,14 +21,15 @@ public class AIAgentService {
     private final SegmentService segmentService;
     private final CampaignService campaignService;
     private final ApifyService apifyService;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
 
-    public AIAgentService(LLMService llmService, CustomerService customerService, SegmentService segmentService, CampaignService campaignService, ApifyService apifyService) {
+    public AIAgentService(LLMService llmService, CustomerService customerService, SegmentService segmentService, CampaignService campaignService, ApifyService apifyService, ObjectMapper mapper) {
         this.llmService = llmService;
         this.customerService = customerService;
         this.segmentService = segmentService;
         this.campaignService = campaignService;
         this.apifyService = apifyService;
+        this.mapper = mapper;
     }
 
     public String processAgentRequest(String userPrompt, List<Map<String, String>> history) {
